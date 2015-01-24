@@ -1,5 +1,6 @@
 # django-pgjsonb
 Django Postgres JSONB Fields support with lookups
+
 Originaly inpired by [django-postgres](https://bitbucket.org/schinckel/django-postgres/)
 
 Install
