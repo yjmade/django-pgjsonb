@@ -1,7 +1,4 @@
 from setuptools import setup, find_packages
-
-from django_pgjsonb import VERSION
-
 README = open('README.md').read()
 
 setup(
