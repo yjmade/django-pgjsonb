@@ -6,7 +6,7 @@ README = open('README.md').read()
 
 setup(
     name='django-pgjsonb',
-    version='.'.join(map(str, VERSION)),
+    version="0.0.1",
     description='Django Postgres JSONB Fields support with lookups',
     long_description=README,
     author='Jay Young(yjmade)',
