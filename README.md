@@ -2,6 +2,10 @@
 Django Postgres JSONB Fields support with lookups
 
 
+Install
+=======
+		pip install django-pgjsonb
+
 Use
 ===
 		from django_pgjsonb import JSONField
