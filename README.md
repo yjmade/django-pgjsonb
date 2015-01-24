@@ -1,6 +1,13 @@
 # django-pgjsonb
 Django Postgres JSONB Fields support with lookups
 
+
+Use
+===
+		from django_pgjsonb import JSONField
+		class Article(models.Model):
+			meta=JSONField([null=True,default={}])
+			
 Lookups
 =======
 ###Contains wide range of lookups support natively by postgres
