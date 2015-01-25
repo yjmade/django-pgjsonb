@@ -9,6 +9,7 @@ setup(
     name='django-pgjsonb',
     version=VERSION,
     description='Django Postgres JSONB Fields support with lookups',
+    url="https://github.com/yjmade/django-pgjsonb",
     long_description=README,
     author='Jay Young(yjmade)',
     author_email='dev@yjmade.net',
