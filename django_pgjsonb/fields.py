@@ -178,26 +178,26 @@ JSONField.register_lookup(ArrayLenTransform)
 
 
 class TransformMeta(type(Transform)):
-    def __init__(cls,*args):
+    def __init__(cls, *args):
         super(TransformMeta, cls).__init__(*args)
-        cls.lookup_name="as_%s"%(cls.lookup_type or cls.type)
+        cls.lookup_name = "as_%s" % (cls.lookup_type or cls.type)
 
-        if cls.__name__!="AsTransform":
+        if cls.__name__ != "AsTransform":
             JSONField.register_lookup(cls)
 
 
 class AsTransform(Transform):
-    __metaclass__=TransformMeta
+    __metaclass__ = TransformMeta
 
-    type=None
-    lookup_type=None
-    field_type=None
+    type = None
+    lookup_type = None
+    field_type = None
 
-    def as_sql(self,qn,connection):
+    def as_sql(self, qn, connection):
         lhs, params = qn.compile(self.lhs)
-        splited=lhs.split("->")
-        lhs="->>".join(["->".join(splited[:-1]),splited[-1]])
-        return "CAST(%s as %s)"%(lhs,self.type),params
+        splited = lhs.split("->")
+        lhs = "->>".join(["->".join(splited[:-1]), splited[-1]])
+        return "CAST(%s as %s)" % (lhs, self.type), params
 
     @property
     def output_field(self):
@@ -205,35 +205,35 @@ class AsTransform(Transform):
 
 
 class JsonAsText(AsTransform):
-    type="text"
-    field_type=models.CharField
+    type = "text"
+    field_type = models.CharField
 
 
 class JsonAsInteger(AsTransform):
-    type="integer"
-    field_type=models.IntegerField
-    lookup_type="int"
+    type = "integer"
+    field_type = models.IntegerField
+    lookup_type = "int"
 
 
 class JsonAsFloat(AsTransform):
-    type="float"
-    field_type=models.FloatField
+    type = "float"
+    field_type = models.FloatField
 
 
 class JsonAsBool(AsTransform):
-    type="boolean"
-    field_type=models.NullBooleanField
-    lookup_type="bool"
+    type = "boolean"
+    field_type = models.NullBooleanField
+    lookup_type = "bool"
 
 
 class JsonAsDate(AsTransform):
-    type="date"
-    field_type=models.DateField
+    type = "date"
+    field_type = models.DateField
 
 
 class JsonAsDatetime(AsTransform):
-    type="datetime"
-    field_type=models.DateTimeField
+    type = "datetime"
+    field_type = models.DateTimeField
 
 
 class Get(Transform):
@@ -251,11 +251,11 @@ class Get(Transform):
         # have already been applied.
 
         # if isinstance(self.name, six.string_types):
-        #     # Also filter on objects.
+        # Also filter on objects.
         #     filter_to = "%s @> '{}' AND" % lhs
         #     self.name = "'%s'" % self.name
         # elif isinstance(self.name, int):
-        #     # Also filter on arrays.
+        # Also filter on arrays.
         #     filter_to = "%s @> '[]' AND" % lhs
         return '%s -> \'%s\'' % (lhs, self.name), params
 
@@ -288,20 +288,20 @@ class PathTransformFactory(object):
         return Path(self.path, *args, **kwargs)
 
 
-def select_json(query,**kwargs):
+def select_json(query, *args, **kwargs):
     def get_sql_str(opr):
         if isinstance(opr, basestring):
-            opr_elements=opr.split("__")
-            field=opr_elements.pop(0)
-            select_elements=['"%s"'%field]+["'%s'"%name for name in opr_elements]
-            return " -> ".join(select_elements)
+            opr_elements = opr.split("__")
+            field = opr_elements.pop(0)
+            select_elements = ['"%s"' % field]+["'%s'" % name for name in opr_elements]
+            return "_".join(opr_elements), " -> ".join(select_elements)
 
-    return query.extra(select={k:get_sql_str(v) for k,v in kwargs.iteritems()})
+    return query.extra(select=dict([get_sql_str(opr) for opr in args], **{k: get_sql_str(v)[1] for k, v in kwargs.iteritems()}))
 
-models.QuerySet.select_json=select_json
+models.QuerySet.select_json = select_json
 
 
-def manager_select_json(manager,*args,**kwargs):
-    return manager.all().select_json(*args,**kwargs)
+def manager_select_json(manager, *args, **kwargs):
+    return manager.all().select_json(*args, **kwargs)
 
-models.manager.BaseManager.select_json=manager_select_json
+models.manager.BaseManager.select_json = manager_select_json
