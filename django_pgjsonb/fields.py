@@ -294,11 +294,14 @@ class PathTransformFactory(object):
 
 
 def select_json(query, *args, **kwargs):
+    if not args and not kwargs:
+        return query
+
     def get_sql_str(opr):
         if isinstance(opr, basestring):
             opr_elements = opr.split("__")
             field = opr_elements.pop(0)
-            select_elements = ['"%s"' % field]+["'%s'" % name for name in opr_elements]
+            select_elements = ['"%s"."%s"' % (query.model._meta.db_table,field)]+["'%s'" % name for name in opr_elements]
             return "_".join(opr_elements), " -> ".join(select_elements)
 
     return query.extra(select=dict([get_sql_str(opr) for opr in args], **{k: get_sql_str(v)[1] for k, v in kwargs.iteritems()}))
