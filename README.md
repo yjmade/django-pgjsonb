@@ -69,20 +69,21 @@ Lookups
 
 Add function to QuerySet
 ========================
-1.`select_json(field_name="JSON_PATHS")`
+1.`select_json("JSON_PATHS",field_name="JSON_PATHS")` 
 
-JSON_PATHS in format of path seperate by "__",like "meta__location__geo_info".it will use queryset extra method to transform a value inside json as a field.
+JSON_PATHS in format of path seperate by "__",like "meta__location__geo_info". It will use queryset's `extra` method to transform a value inside json as a field.
+If no fields_name provided,it will generate a field name with lookups seperate by _ without the json field self's name,so `select_json("meta__author__name")` equal to `select_json("author_name")`
 	
 ```python
-Article.objects.select_json(geo="meta__location__geo_info")`
+Article.objects.select_json("meta__author__name",geo="meta__location__geo_info")`
 ```
 	
  This operation will translate to sql as 
  	
  ```sql
- SELECT "meta"->'location'->>'geo_info' as "geo"
+ SELECT "article"."meta"->'location'->'geo_info' as "geo", "article"."meta"->'author'->'name' as "author_name"
  ```
-  After select_json ,then the field_name can be operate in values() and values_list() method,so that
+  After select_json ,the field_name can be operate in values() and values_list() method,so that
   
   1. select only one sepecific value inside json
   2. to group by one value inside json
