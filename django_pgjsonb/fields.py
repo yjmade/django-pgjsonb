@@ -71,7 +71,7 @@ class JSONField(models.Field):
 
     def deconstruct(self):
         name, path, args, kwargs = super(JSONField, self).deconstruct()
-        path = 'postgres.fields.JSONField'
+        path = 'django_pgjsonb.fields.JSONField'
         kwargs.update(
             decode_kwargs=self.decode_kwargs,
             encode_kwargs=self.encode_kwargs
