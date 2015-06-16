@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 README = open('README.md').read()
-VERSION = open("django_pgjsonb/VERSION").read()
+VERSION = "0.0.14"
 
 setup(
     name='django-pgjsonb',
@@ -15,5 +15,4 @@ setup(
     author_email='dev@yjmade.net',
     packages=find_packages(),
     install_requires=['Django>=1.7','psycopg2>=2.5.4'],
-    data_files=[('django_pgjsonb', ['django_pgjsonb/VERSION'])],
 )

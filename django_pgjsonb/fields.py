@@ -7,7 +7,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.lookups import BuiltinLookup, Transform
 from django.utils import six
-from django.conf import settings
 from psycopg2.extras import register_json
 
 # We can register jsonb to be loaded as json!
@@ -235,10 +234,13 @@ class JsonAsDatetime(AsTransform):
     lookup_type = "datetime"
     field_type = models.DateTimeField
 
-    if settings.USE_TZ:
-        type="timestamptz"
-    else:
-        type="timestamp"
+    @property
+    def type(self):
+        from django.conf import settings
+        if settings.USE_TZ:
+            return "timestamptz"
+        else:
+            return "timestamp"
 
 
 class Get(Transform):
