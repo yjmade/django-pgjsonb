@@ -6,7 +6,9 @@ import decimal
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.lookups import BuiltinLookup, Transform
+from django.db.backends.postgresql_psycopg2.schema import DatabaseSchemaEditor
 from django.utils import six
+from django.utils.functional import partition
 from psycopg2.extras import register_json
 
 # We can register jsonb to be loaded as json!
@@ -27,6 +29,12 @@ class JSONField(models.Field):
         self.encode_kwargs = kwargs.pop('encode_kwargs', {
             'cls': DjangoJSONEncoder,
         })
+        db_index=kwargs.get("db_index")
+        db_index_options = kwargs.pop("db_index_options",{})
+        if db_index:
+            self.db_index_options=db_index_options if isinstance(db_index_options,(list,tuple)) else [db_index_options]
+
+            kwargs["db_index"]=False
         super(JSONField, self).__init__(*args, **kwargs)
 
     def get_internal_type(self):
@@ -75,6 +83,10 @@ class JSONField(models.Field):
             decode_kwargs=self.decode_kwargs,
             encode_kwargs=self.encode_kwargs
         )
+        if hasattr(self,"db_index_options"):
+            if self.db_index_options:
+                kwargs["db_index_options"]=self.db_index_options
+            kwargs["db_index"]=True
         return name, path, args, kwargs
 
     def to_python(self, value):
@@ -98,6 +110,71 @@ class JSONField(models.Field):
             pass
 
         return GetTransform(name)
+
+DatabaseSchemaEditor.create_jsonb_index_sql="CREATE INDEX %(name)s ON %(table)s USING GIN ({path}{ops_cls})%(extra)s"
+
+
+def create_jsonb_index_sql(editor,model,field):
+    options=field.db_index_options
+
+    json_path_op="->"
+    sqls=[]
+    for option in options:
+        paths=option.get("path","")
+        if not paths:
+            path="%(columns)s"
+        else:
+            path_elements=paths.split("__")
+            path="(%(columns)s{}{})".format(json_path_op,json_path_op.join(["'%s'" % element for element in path_elements]))
+
+        ops_cls=" jsonb_path_ops" if option.get("only_contains") else ""
+        sql=editor.create_jsonb_index_sql.format(path=path,ops_cls=ops_cls)
+        sqls.append(editor._create_index_sql(model,[field],sql=sql,suffix=(editor._digest(paths) if paths else "")))
+    return sqls
+
+DatabaseSchemaEditor._create_jsonb_index_sql=create_jsonb_index_sql
+
+orig_model_indexes_sql=DatabaseSchemaEditor._model_indexes_sql
+orig_alter_field=DatabaseSchemaEditor._alter_field
+
+
+def _model_indexes_sql(editor,model):
+    output=orig_model_indexes_sql(editor,model)
+    json_fields=[field for field in model._meta.local_fields if isinstance(field,JSONField) and hasattr(field,"db_index_options")]
+    for json_field in json_fields:
+        output+=editor._create_jsonb_index_sql(model,json_field)
+    return output
+
+
+def _alter_field(editor, model, old_field, new_field, old_type, new_type,
+                 old_db_params, new_db_params, strict=False):
+    orig_alter_field(editor, model, old_field, new_field, old_type, new_type,
+                     old_db_params, new_db_params, strict=False)
+    if isinstance(new_field,JSONField):
+        old_index=getattr(old_field,"db_index_options",None)
+        new_index=getattr(new_field,"db_index_options",None)
+        if new_index!=old_index:
+            if old_index:
+                normal_index,with_path_index=partition(lambda index:bool(index.get("path")),old_index)
+                index_names = editor._constraint_names(model, [old_field.column], index=True) if normal_index else []
+                if with_path_index:
+                    all_indexes=editor._constraint_names(model, index=True)
+
+                    for index_info in with_path_index:
+                        path_hash=editor._digest(index_info["path"])
+                        for i,index in enumerate(all_indexes):
+                            if index.endswith(path_hash):
+                                index_names.append(all_indexes.pop(i))
+                                break
+
+                for index_name in index_names:
+                    editor.execute(editor._delete_constraint_sql(editor.sql_delete_index, model, index_name))
+            if new_index:
+                for sql in editor._create_jsonb_index_sql(model,new_field):
+                    editor.execute(sql)
+
+DatabaseSchemaEditor._model_indexes_sql=_model_indexes_sql
+DatabaseSchemaEditor._alter_field=_alter_field
 
 
 class PostgresLookup(BuiltinLookup):

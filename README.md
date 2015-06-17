@@ -8,7 +8,7 @@ Install
 
 `pip install django-pgjsonb`
 
-Use
+Definition
 ===
 
 ```python
@@ -17,6 +17,29 @@ from django_pgjsonb import JSONField
 class Article(models.Model):
 	meta=JSONField([null=True,default={}])
 ```
+
+Add Index
+=====
+[new add in 0.0.15]
+
+jsonb field support gin type index to accelerator filtering. Since JSON is a data structure contains hierarchy, so the index of jsonb field will be more complicate than another single value field. More information, please referance [Postgres document 8.14.4](http://www.postgresql.org/docs/9.4/static/datatype-json.html)
+
+```python
+meta=JSONField(db_index=True)
+or
+meta=JSONField(db_index=True,db_index_options={"path":"authors__name","only_contains":True})
+or
+meta=JSONField(db_index=True,db_index_options=[{},{"path":"authors__name","only_contains":True}])
+``` 
+
+When set db_index as True and do not set db_index_options, it will generate default GIN index, most case it's enough.
+
+When specify ```db_index_options={"only_contains":True}```,the index will be as the non-default GIN operator class jsonb_path_ops that supports indexing the ```contains``` operator only, but it's consume less space and more efficient.
+
+When sepcify the path parameter in db_index_options, ```db_index_options={"path":"authors__name"}```, then index will generate to the sepecify path, so that ```Article.objects.filter(meta__authors__name__contains=["asd"])``` can utilize the index.
+
+So you can create multiple index in one JSONFieldy, just pass the db_index_options parameter as a list that contains multiple options, it will generate multiple correspond indexes. Empty dict stand for the default GIN index.
+
 
 Lookups
 =======
