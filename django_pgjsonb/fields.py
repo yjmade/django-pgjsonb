@@ -7,6 +7,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.lookups import BuiltinLookup, Transform
 from django.db.backends.postgresql_psycopg2.schema import DatabaseSchemaEditor
+from django.db.backends.postgresql_psycopg2.introspection import DatabaseIntrospection
 from django.utils import six
 from django.utils.functional import partition
 from psycopg2.extras import register_json
@@ -17,6 +18,8 @@ register_json(oid=3802, array_oid=3807)
 # However, it may be that we want to use specific decoding on
 # the json object... which if we wanted to do it on a per-field
 # basis, we'd need to not have run that line.
+
+DatabaseIntrospection.data_types_reverse[3802]="django_pgjsonb.JSONField"
 
 
 class JSONField(models.Field):

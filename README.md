@@ -3,6 +3,14 @@ Django Postgres JSONB Fields support with lookups
 
 Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-postgres/)
 
+Change Logs
+===========
+2015-07-23: 0.0.16
+	Add support for ./manage.py inspectdb
+
+2015-06-10: 0.0.15
+    Add support for db_index to add GIN index
+
 Install
 =======
 
@@ -30,7 +38,7 @@ or
 meta=JSONField(db_index=True,db_index_options={"path":"authors__name","only_contains":True})
 or
 meta=JSONField(db_index=True,db_index_options=[{},{"path":"authors__name","only_contains":True}])
-``` 
+```
 
 When set db_index as True and do not set db_index_options, it will generate default GIN index, most case it's enough.
 
