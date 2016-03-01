@@ -47,9 +47,9 @@ When set db_index as True and do not set db_index_options, it will generate defa
 
 When specify ```db_index_options={"only_contains":True}```,the index will be as the non-default GIN operator class jsonb_path_ops that supports indexing the ```contains``` operator only, but it's consume less space and more efficient.
 
-When sepcify the path parameter in db_index_options, ```db_index_options={"path":"authors__name"}```, then index will generate to the sepecify path, so that ```Article.objects.filter(meta__authors__name__contains=["asd"])``` can utilize the index.
+When specify the path parameter in db_index_options, ```db_index_options={"path":"authors__name"}```, then index will generate to the specify path, so that ```Article.objects.filter(meta__authors__name__contains=["asd"])``` can utilize the index.
 
-So you can create multiple index in one JSONFieldy, just pass the db_index_options parameter as a list that contains multiple options, it will generate multiple correspond indexes. Empty dict stand for the default GIN index.
+So you can create multiple index in one JSONField, just pass the db_index_options parameter as a list that contains multiple options, it will generate multiple correspond indexes. Empty dict stand for the default GIN index.
 
 
 Lookups
@@ -119,7 +119,7 @@ Article.objects.select_json("meta__author__name",geo="meta__location__geo_info")
  ```
   After select_json ,the field_name can be operate in values() and values_list() method,so that
 
-  1. select only one sepecific value inside json
+  1. select only one specific value inside json
   2. to group by one value inside json
 
 is possible.
