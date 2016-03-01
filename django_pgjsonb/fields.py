@@ -395,3 +395,19 @@ def manager_select_json(manager, *args, **kwargs):
     return manager.all().select_json(*args, **kwargs)
 
 models.manager.BaseManager.select_json = manager_select_json
+
+
+def patch_serializer():
+    from django.core.serializers.python import Serializer
+    old_handle_field=Serializer.handle_field
+
+    def handle_field(serializer,obj,field):
+        if isinstance(field, JSONField):
+            value = field.value_from_object(obj)
+            serializer._current[field.name]=value
+        else:
+            return old_handle_field(serializer, obj, field)
+
+    Serializer.handle_field=handle_field
+
+patch_serializer()

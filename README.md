@@ -5,6 +5,9 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2016-03-01: 0.0.17
+	patch the django serilizer to not return the stringifyed result
+
 2015-07-23: 0.0.16
 	Add support for ./manage.py inspectdb
 

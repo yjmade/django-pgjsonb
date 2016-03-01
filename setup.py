@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 README = open('README.md').read()
-VERSION = "0.0.16"
+VERSION = "0.0.17"
 
 setup(
     name='django-pgjsonb',
