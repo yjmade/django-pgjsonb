@@ -5,6 +5,9 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2016-03-01: 0.0.18
+	we want to be able to use customize decoder to load json, so get avoid the psycopg2's decode json, just return raw text then we deserilize by the field from_db_value
+
 2016-03-01: 0.0.17
 	patch the django serilizer to not return the stringifyed result
 

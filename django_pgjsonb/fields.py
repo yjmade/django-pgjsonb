@@ -10,14 +10,9 @@ from django.db.backends.postgresql_psycopg2.schema import DatabaseSchemaEditor
 from django.db.backends.postgresql_psycopg2.introspection import DatabaseIntrospection
 from django.utils import six
 from django.utils.functional import partition
-from psycopg2.extras import register_json
-
-# We can register jsonb to be loaded as json!
-# http://schinckel.net/2014/05/24/python%2C-postgres-and-jsonb/
-register_json(oid=3802, array_oid=3807)
-# However, it may be that we want to use specific decoding on
-# the json object... which if we wanted to do it on a per-field
-# basis, we'd need to not have run that line.
+from psycopg2.extras import register_default_jsonb
+# we want to be able to use customize decoder to load json, so get avoid the psycopg2's decode json, just return raw text then we deserilize by the field from_db_value
+register_default_jsonb(loads=lambda x: x)
 
 DatabaseIntrospection.data_types_reverse[3802]="django_pgjsonb.JSONField"
 
@@ -96,6 +91,11 @@ class JSONField(models.Field):
         if value is None and not self.null and self.blank:
             return ''
         # Rely on psycopg2 to give us the value already converted.
+        return value
+
+    def from_db_value(self, value, expression, connection, context):
+        if value is not None:
+            value = json.loads(value,**self.decode_kwargs)
         return value
 
     def get_transform(self, name):
