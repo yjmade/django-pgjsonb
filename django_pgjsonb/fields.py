@@ -118,11 +118,14 @@ class JSONField(models.Field):
 def patch_index_create():
     DatabaseSchemaEditor.create_jsonb_index_sql="CREATE INDEX %(name)s ON %(table)s USING GIN ({path}{ops_cls})%(extra)s"
 
+    def get_jsonb_index_name(editor,model,field,index_info):
+        return editor._create_index_name(model,[field.name],suffix=editor._digest(index_info.get("path") or ""))
+
     def create_jsonb_index_sql(editor,model,field):
         options=field.db_index_options
 
         json_path_op="->"
-        sqls=[]
+        sqls={}
         for option in options:
             paths=option.get("path","")
             if not paths:
@@ -133,7 +136,7 @@ def patch_index_create():
 
             ops_cls=" jsonb_path_ops" if option.get("only_contains") else ""
             sql=editor.create_jsonb_index_sql.format(path=path,ops_cls=ops_cls)
-            sqls.append(editor._create_index_sql(model,[field],sql=sql,suffix=(editor._digest(paths) if paths else "")))
+            sqls[get_jsonb_index_name(editor,model,field,option)]=editor._create_index_sql(model,[field],sql=sql,suffix=(editor._digest(paths) if paths else ""))
         return sqls
 
     DatabaseSchemaEditor._create_jsonb_index_sql=create_jsonb_index_sql
@@ -146,7 +149,7 @@ def patch_index_create():
         output=orig_model_indexes_sql(editor,model)
         json_fields=[field for field in model._meta.local_fields if isinstance(field,JSONField) and hasattr(field,"db_index_options")]
         for json_field in json_fields:
-            output+=editor._create_jsonb_index_sql(model,json_field)
+            output.extend(editor._create_jsonb_index_sql(model,json_field).values())
         return output
 
     def _alter_field(editor, model, old_field, new_field, old_type, new_type,
@@ -158,24 +161,17 @@ def patch_index_create():
         old_index=getattr(old_field,"db_index_options",None)
         new_index=getattr(new_field,"db_index_options",None)
         if new_index!=old_index:
-            if old_index:
-                normal_index,with_path_index=partition(lambda index:bool(index.get("path")),old_index)
-                index_names = editor._constraint_names(model, [old_field.column], index=True) if normal_index else []
-                if with_path_index:
-                    all_indexes=editor._constraint_names(model, index=True)
+            all_old_index_names={get_jsonb_index_name(editor,model,new_field,index_info) for index_info in old_index} if old_index else set()
+            all_new_indexe_names={get_jsonb_index_name(editor,model,new_field,index_info) for index_info in new_index} if new_index else set()
 
-                    for index_info in with_path_index:
-                        path_hash=editor._digest(index_info["path"])
-                        for i,index in enumerate(all_indexes):
-                            if index.endswith(path_hash):
-                                index_names.append(all_indexes.pop(i))
-                                break
+            to_create_indexs,to_delete_indexes=(all_new_indexe_names - all_old_index_names),(all_old_index_names - all_new_indexe_names)
+            if to_create_indexs:
+                for index_name,sql in six.iteritems(editor._create_jsonb_index_sql(model,new_field)):
+                    if index_name in to_create_indexs:
+                        editor.execute(sql)
 
-                for index_name in index_names:
-                    editor.execute(editor._delete_constraint_sql(editor.sql_delete_index, model, index_name))
-            if new_index:
-                for sql in editor._create_jsonb_index_sql(model,new_field):
-                    editor.execute(sql)
+            for index_name in to_delete_indexes:
+                editor.execute(editor._delete_constraint_sql(editor.sql_delete_index, model, index_name))
         return res
 
     def add_field(editor,model,field):
@@ -183,7 +179,7 @@ def patch_index_create():
         if not isinstance(field, JSONField):
             return res
         if field.db_index_options:
-            editor.deferred_sql+=editor._create_jsonb_index_sql(model,field)
+            editor.deferred_sql.extend(editor._create_jsonb_index_sql(model,field).values())
         return res
 
     DatabaseSchemaEditor._model_indexes_sql=_model_indexes_sql
