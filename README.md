@@ -7,8 +7,10 @@ Change Logs
 ===========
 2016-03-09: 0.0.20
 	Add the array length for select_json
+
 2016-03-08: 0.0.19
 	fix when add a json field with db_index=True and it's fail to generate the create index sql
+
 2016-03-01: 0.0.18
 	we want to be able to use customize decoder to load json, so get avoid the psycopg2's decode json, just return raw text then we deserilize by the field from_db_value
 
