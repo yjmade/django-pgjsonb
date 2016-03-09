@@ -127,7 +127,7 @@ Article.objects.select_json("meta__author__name",geo="meta__location__geo_info")
  SELECT "article"."meta"->'location'->'geo_info' as "geo", "article"."meta"->'author'->'name' as "author_name"
  ```
 
-new add in 0.0.20
+[new add in 0.0.20]
 You can also select the length of a json array as a field by use Length object
 
 ```python
