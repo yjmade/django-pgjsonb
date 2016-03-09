@@ -5,6 +5,8 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2016-03-09: 0.0.20
+	Add the array length for select_json
 2016-03-08: 0.0.19
 	fix when add a json field with db_index=True and it's fail to generate the create index sql
 2016-03-01: 0.0.18
@@ -122,6 +124,15 @@ Article.objects.select_json("meta__author__name",geo="meta__location__geo_info")
  ```sql
  SELECT "article"."meta"->'location'->'geo_info' as "geo", "article"."meta"->'author'->'name' as "author_name"
  ```
+
+new add in 0.0.20
+You can also select the length of a json array as a field by use Length object
+
+```python
+from django.pgjsonb.fields import Length
+Article.objects.select_json(authors_len=Length("meta__authors")).values("authors_len")
+```
+
   After select_json ,the field_name can be operate in values() and values_list() method,so that
 
   1. select only one specific value inside json

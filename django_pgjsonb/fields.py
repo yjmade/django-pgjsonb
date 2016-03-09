@@ -388,16 +388,24 @@ def select_json(query, *args, **kwargs):
     if not args and not kwargs:
         return query
 
-    def get_sql_str(opr):
+    def get_sql_str(model,opr):
         if isinstance(opr, six.string_types):
             opr_elements = opr.split("__")
             field = opr_elements.pop(0)
-            select_elements = ['"%s"."%s"' % (query.model._meta.db_table,field)]+["'%s'" % name for name in opr_elements]
+            select_elements = ['"%s"."%s"' % (model._meta.db_table,field)]+["'%s'" % name for name in opr_elements]
             return "_".join(opr_elements), " -> ".join(select_elements)
+        elif isinstance(opr, Length):
+            annotate_name,sql=get_sql_str(model, opr.field_select)
+            return annotate_name+"_len","jsonb_array_length(%s)" % sql
 
-    return query.extra(select=dict([get_sql_str(opr) for opr in args], **{k: get_sql_str(v)[1] for k, v in six.iteritems(kwargs)}))
+    return query.extra(select=dict([get_sql_str(query.model,opr) for opr in args], **{k: get_sql_str(query.model,v)[1] for k, v in kwargs.iteritems()}))
 
 models.QuerySet.select_json = select_json
+
+
+class Length(object):
+    def __init__(self,field_select):
+        self.field_select=field_select
 
 
 def manager_select_json(manager, *args, **kwargs):
