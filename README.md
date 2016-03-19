@@ -5,6 +5,9 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2016-03-19: 0.0.21
+	Fix error #10
+
 2016-03-09: 0.0.20
 	Add the array length for select_json
 

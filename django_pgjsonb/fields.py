@@ -178,7 +178,7 @@ def patch_index_create():
         res=orig_add_field(editor,model,field)
         if not isinstance(field, JSONField):
             return res
-        if field.db_index_options:
+        if getattr(field,"db_index_options",None):
             editor.deferred_sql.extend(editor._create_jsonb_index_sql(model,field).values())
         return res
 
