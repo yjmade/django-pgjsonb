@@ -38,7 +38,20 @@ Definition
 from django_pgjsonb import JSONField
 
 class Article(models.Model):
-	meta=JSONField([null=True,default={}])
+	meta=JSONField([null=True,default={},decode_kwargs={},encode_kwargs={},db_index=False,db_index_options={}])
+```
+
+Encoder and Decoder Options
+===
+by define decode_kwargs and encode_kwargs you can use your customize json dump and load behaveior, basicly these parameters will just pass to json.loads(**decode_kwargs) and json.dumps(**encode_kwargs)
+
+here is an example for use [EJSON](https://pypi.python.org/pypi/ejson) to store native datetime object
+
+```python
+import ejson
+
+class Article(models.Model):
+	meta=JSONField(encode_kwargs={"cls":ejson.EJSONEncoder},decode_kwargs={"cls":ejson.EJSONDecoder})
 ```
 
 Add Index

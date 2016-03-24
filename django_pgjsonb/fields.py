@@ -22,7 +22,7 @@ class JSONField(models.Field):
 
     def __init__(self, *args, **kwargs):
         self.decode_kwargs = kwargs.pop('decode_kwargs', {
-            'parse_float': decimal.Decimal
+            # 'parse_float': decimal.Decimal
         })
         self.encode_kwargs = kwargs.pop('encode_kwargs', {
             'cls': DjangoJSONEncoder,
