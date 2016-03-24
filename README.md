@@ -5,6 +5,9 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2016-03-24: 0.0.22
+	Fix error #11 remove the unexpect decode float to Decimal
+
 2016-03-19: 0.0.21
 	Fix error #10
 
