@@ -82,7 +82,7 @@ So you can create multiple index in one JSONField, just pass the db_index_option
 
 Lookups
 =======
-###Contains wide range of lookups support natively by postgres
+###Contains a wide range of lookups supported natively by postgres
 
 1. `has` :if field has specific key *`("?")`*
 
@@ -129,12 +129,12 @@ Lookups
 	Article.objects.filter(meta__path_author_articles__contains="show me the money")
 	```
 
-Add function to QuerySet
+Added function to QuerySet
 ========================
 1.`select_json("JSON_PATHS",field_name="JSON_PATHS")`
 
-JSON_PATHS in format of path separate by "__",like "meta__location__geo_info". It will use queryset's `extra` method to transform a value inside json as a field.
-If no fields_name provided, it will generate a field name with lookups separate by _ without the json field self's name, so `select_json("meta__author__name")` equal to `select_json("author_name")`
+JSON_PATHS in the format of paths separated by "__",like "meta__location__geo_info". It will use the queryset's `extra` method to transform a value inside json as a field.
+If no field_name provided, it will generate a field name with lookups separate by _ without the json field self's name, so `select_json("meta__author__name")` is equal to `select_json("author_name")`
 
 ```python
 Article.objects.select_json("meta__author__name",geo="meta__location__geo_info")`
