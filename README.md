@@ -175,4 +175,4 @@ Article.objects.all().select_json(author_name="meta__author__name")\
 
 
 
-#####For more information about raw jsonb operation,please see [PostgreSQL Document](http://www.postgresql.org/docs/9.4/static/functions-json.html)
+#####For more information about raw jsonb operation, please see [PostgreSQL Documentation](http://www.postgresql.org/docs/9.4/static/functions-json.html)
