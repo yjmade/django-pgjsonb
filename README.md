@@ -134,7 +134,7 @@ Added function to QuerySet
 1.`select_json("JSON_PATHS",field_name="JSON_PATHS")`
 
 JSON_PATHS in the format of paths separated by "__",like "meta__location__geo_info". It will use the queryset's `extra` method to transform a value inside json as a field.
-If no field_name provided, it will generate a field name with lookups separate by _ without the json field self's name, so `select_json("meta__author__name")` is equal to `select_json("author_name")`
+If no field_name provided, it will generate a field name with lookups separate by _ without the json field self's name, so `select_json("meta__author__name")` is equal to `select_json(author_name="meta__author__name")`
 
 ```python
 Article.objects.select_json("meta__author__name",geo="meta__location__geo_info")`
