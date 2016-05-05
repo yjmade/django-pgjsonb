@@ -61,7 +61,7 @@ Add Index
 =====
 [new add in 0.0.15]
 
-jsonb field support gin type index to accelerator filtering. Since JSON is a data structure contains hierarchy, so the index of jsonb field will be more complicate than another single value field. More information, please referance [Postgres document 8.14.4](http://www.postgresql.org/docs/9.4/static/datatype-json.html)
+jsonb field support gin type index to accelerator filtering. Since JSON is a data structure contains hierarchy, so the index of jsonb field will be more complicate than another single value field. More information, please reference [Postgres document 8.14.4](http://www.postgresql.org/docs/9.4/static/datatype-json.html)
 
 ```python
 meta=JSONField(db_index=True)
@@ -73,7 +73,7 @@ meta=JSONField(db_index=True,db_index_options=[{},{"path":"authors__name","only_
 
 When set db_index as True and do not set db_index_options, it will generate default GIN index, most case it's enough.
 
-When specify ```db_index_options={"only_contains":True}```,the index will be as the non-default GIN operator class jsonb_path_ops that supports indexing the ```contains``` operator only, but it's consume less space and more efficient.
+When specify ```db_index_options={"only_contains":True}```, the index will be as the non-default GIN operator class jsonb_path_ops that supports indexing the ```contains``` operator only, but it's consume less space and more efficient.
 
 When specify the path parameter in db_index_options, ```db_index_options={"path":"authors__name"}```, then index will generate to the specify path, so that ```Article.objects.filter(meta__authors__name__contains=["asd"])``` can utilize the index.
 
@@ -82,23 +82,23 @@ So you can create multiple index in one JSONField, just pass the db_index_option
 
 Lookups
 =======
-###Contains wide range of lookups support natively by postgres
+###Contains a wide range of lookups supported natively by postgres
 
 1. `has` :if field has specific key *`("?")`*
 
 	```python
-	Artile.objects.filter(meta__has="author")
+	Article.objects.filter(meta__has="author")
 	```
 
 2. `has_any` : if field has any of the specific keys *`("?|")`*
 
 	```python
-	Artile.objects.filter(meta__has_any=["author","date"])
+	Article.objects.filter(meta__has_any=["author","date"])
 	```
 3. `has_all` : if field has all of the specific keys *`("?&")`*
 
 	```python
-	Artile.objects.filter(meta__has_all=["author","date"])
+	Article.objects.filter(meta__has_all=["author","date"])
 	```
 4. `contains` : if field contains the specific keys and values *`("@>")`*
 	```python
@@ -107,16 +107,16 @@ Lookups
 
 5. `in` or `contained_by` : if all field key and value  contain by input *`("<@")`*
 	```python
-	Artile.objects.filter(meta__in={"author":"yjmade","date":"2014-12-13"})
+	Article.objects.filter(meta__in={"author":"yjmade","date":"2014-12-13"})
 	```
 
-6. `len` : the length of the array ,transform to int,and can followed int lookup like gt or lt *`("jsonb_array_length()")`*
+6. `len` : the length of the array, transform to int, and can followed int lookup like gt or lt *`("jsonb_array_length()")`*
 
 	```python
-	Artile.objects.filter(meta__authors__len__gte=3)
+	Article.objects.filter(meta__authors__len__gte=3)
 	Article.objects.filter(meta__authors__len=10)
 	```
-7. `as_(text,int,float,bool,date,datetime)` : transform json field into sepcific data type so that you can follow operation of this type *`("CAST(FIELD as TYPE)")`*
+7. `as_(text,int,float,bool,date,datetime)` : transform json field into specific data type so that you can follow operation of this type *`("CAST(FIELD as TYPE)")`*
 
 	```python
 	Article.objects.filter(meta__date__as_datetime__year__range=(2012,2015))
@@ -129,12 +129,12 @@ Lookups
 	Article.objects.filter(meta__path_author_articles__contains="show me the money")
 	```
 
-Add function to QuerySet
+Added function to QuerySet
 ========================
 1.`select_json("JSON_PATHS",field_name="JSON_PATHS")`
 
-JSON_PATHS in format of path seperate by "__",like "meta__location__geo_info". It will use queryset's `extra` method to transform a value inside json as a field.
-If no fields_name provided,it will generate a field name with lookups seperate by _ without the json field self's name,so `select_json("meta__author__name")` equal to `select_json("author_name")`
+JSON_PATHS in the format of paths separated by "__",like "meta__location__geo_info". It will use the queryset's `extra` method to transform a value inside json as a field.
+If no field_name provided, it will generate a field name with lookups separate by _ without the json field self's name, so `select_json("meta__author__name")` is equal to `select_json("author_name")`
 
 ```python
 Article.objects.select_json("meta__author__name",geo="meta__location__geo_info")`
@@ -154,7 +154,7 @@ from django.pgjsonb.fields import Length
 Article.objects.select_json(authors_len=Length("meta__authors")).values("authors_len")
 ```
 
-  After select_json ,the field_name can be operate in values() and values_list() method,so that
+  After select_json, the field_name can be operate in values() and values_list() method, so that
 
   1. select only one specific value inside json
   2. to group by one value inside json
@@ -175,4 +175,4 @@ Article.objects.all().select_json(author_name="meta__author__name")\
 
 
 
-#####For more infomation about raw jsonb operation,please see [PostgreSQL Document](http://www.postgresql.org/docs/9.4/static/functions-json.html)
+#####For more information about raw jsonb operation, please see [PostgreSQL Documentation](http://www.postgresql.org/docs/9.4/static/functions-json.html)
