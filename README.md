@@ -5,6 +5,9 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2016-06-01: 0.0.23
+	Fix value from select_json not been decode from json introduce by 0.0.18
+
 2016-03-24: 0.0.22
 	Fix error #11 remove the unexpect decode float to Decimal
 

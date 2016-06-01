@@ -388,23 +388,42 @@ class PathTransformFactory(object):
         return Path(self.path, *args, **kwargs)
 
 
-def select_json(query, *args, **kwargs):
-    if not args and not kwargs:
-        return query
+def patch_select_json():
+    class SQLStr(six.text_type):
+        output_field = JSONField()
 
-    def get_sql_str(model, opr):
-        if isinstance(opr, six.string_types):
-            opr_elements = opr.split("__")
-            field = opr_elements.pop(0)
-            select_elements = ['"%s"."%s"' % (model._meta.db_table, field)] + ["'%s'" % name for name in opr_elements]
-            return "_".join(opr_elements), " -> ".join(select_elements)
-        elif isinstance(opr, Length):
-            annotate_name, sql = get_sql_str(model, opr.field_select)
-            return annotate_name + "_len", "jsonb_array_length(%s)" % sql
+    def select_json(query, *args, **kwargs):
+        if not args and not kwargs:
+            return query
 
-    return query.extra(select=dict([get_sql_str(query.model, opr) for opr in args], **{k: get_sql_str(query.model, v)[1] for k, v in kwargs.iteritems()}))
+        def get_sql_str(model, opr):
+            if isinstance(opr, six.string_types):
+                opr_elements = opr.split("__")
+                field = opr_elements.pop(0)
+                select_elements = ['"%s"."%s"' % (model._meta.db_table, field)] + ["'%s'" % name for name in opr_elements]
+                return "_".join(opr_elements), SQLStr(" -> ".join(select_elements))
+            elif isinstance(opr, Length):
+                annotate_name, sql = get_sql_str(model, opr.field_select)
+                return annotate_name + "_len", SQLStr("jsonb_array_length(%s)" % sql)
 
-models.QuerySet.select_json = select_json
+        return query.extra(select=dict(
+            [get_sql_str(query.model, opr) for opr in args],
+            **{k: get_sql_str(query.model, v)[1] for k, v in kwargs.iteritems()}
+        ))
+
+    models.QuerySet.select_json = select_json
+
+    orig_init = models.expressions.RawSQL.__init__
+
+    def init(self, sql, params, output_field=None):
+        if hasattr(sql, "output_field"):
+            output_field = sql.output_field
+        return orig_init(self, sql, params, output_field=output_field)
+
+    models.expressions.RawSQL.__init__ = init
+
+
+patch_select_json()
 
 
 class Length(object):
