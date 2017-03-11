@@ -189,18 +189,32 @@ support geo search in jsonb
 **require**: postgresql plugin: 
 
 1. cube
+
 2. earthdistance
+
+3. to install these two plugin, run command below in psql
+
+   ```
+   CREATE EXTENSION cube;  
+   CREATE EXTENSION earthdistance; 
+   ```
+
+how to save location  json record
+
+```Json
+{"location": [30.2, 199.4]}  # just keep a latitude, longitude list
+```
 
 Demo
 
 ```python
-Article.objects.filter(data__location__near=[39.9, 116.4,5000]) # longitude，latitude，search range
+Article.objects.filter(data__location__near=[39.9, 116.4,5000]) # latitude，longitude，search range
 ```
 
 or 
 
-```
-Article.objects.filter(data__location__near='39.9,116.4,5000') # latitude，longitudesearch range
+```python
+Article.objects.filter(data__location__near='39.9,116.4,5000') # latitude，longitude, search range
 ```
 
 **Alert**: if you don't pass exact number of params, this filter will not be used
