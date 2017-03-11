@@ -219,5 +219,9 @@ Article.objects.filter(data__location__near='39.9,116.4,5000') # latitude，long
 
 **Alert**: if you don't pass exact number of params, this filter will not be used
 
+**for more earthdistance**, see [Postgresql Earthdistance Documentation](https://www.postgresql.org/docs/8.3/static/earthdistance.html)
+
+------------------------------------------------------------------------------------------------------------------
+
 
 #####For more information about raw jsonb operation, please see [PostgreSQL Documentation](http://www.postgresql.org/docs/9.4/static/functions-json.html)
