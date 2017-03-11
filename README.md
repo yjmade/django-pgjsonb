@@ -200,7 +200,7 @@ Article.objects.filter(data__location__near=[39.9, 116.4,5000]) # longitude，la
 or 
 
 ```
-Article.objects.filter(data__location__near='39.9,116.4,5000') # longitude，latitude，search range
+Article.objects.filter(data__location__near='39.9,116.4,5000') # latitude，longitudesearch range
 ```
 
 **Alert**: if you don't pass exact number of params, this filter will not be used
