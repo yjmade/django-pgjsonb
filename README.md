@@ -3,6 +3,7 @@ Django Postgres JSONB Fields support with lookups
 
 Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-postgres/)
 
+
 Change Logs
 ===========
 2016-06-01: 0.0.23
@@ -37,6 +38,7 @@ Install
 
 `pip install django-pgjsonb`
 
+
 Definition
 ===
 
@@ -46,6 +48,7 @@ from django_pgjsonb import JSONField
 class Article(models.Model):
 	meta=JSONField([null=True,default={},decode_kwargs={},encode_kwargs={},db_index=False,db_index_options={}])
 ```
+
 
 Encoder and Decoder Options
 ===
@@ -59,6 +62,7 @@ import ejson
 class Article(models.Model):
 	meta=JSONField(encode_kwargs={"cls":ejson.EJSONEncoder},decode_kwargs={"cls":ejson.EJSONDecoder})
 ```
+
 
 Add Index
 =====
@@ -89,48 +93,49 @@ Lookups
 
 1. `has` :if field has specific key *`("?")`*
 
-	```python
-	Article.objects.filter(meta__has="author")
-	```
+ ```python
+ Article.objects.filter(meta__has="author")
+ ```
 
 2. `has_any` : if field has any of the specific keys *`("?|")`*
 
-	```python
-	Article.objects.filter(meta__has_any=["author","date"])
-	```
+ ```python
+ Article.objects.filter(meta__has_any=["author","date"])
+ ```
 3. `has_all` : if field has all of the specific keys *`("?&")`*
 
-	```python
-	Article.objects.filter(meta__has_all=["author","date"])
-	```
+ ```python
+ Article.objects.filter(meta__has_all=["author","date"])
+ ```
 4. `contains` : if field contains the specific keys and values *`("@>")`*
-	```python
-	Article.objects.filter(meta__contains={"author":"yjmade","date":"2014-12-13"})
-	```
+ ```python
+ Article.objects.filter(meta__contains={"author":"yjmade","date":"2014-12-13"})
+ ```
 
 5. `in` or `contained_by` : if all field key and value  contain by input *`("<@")`*
-	```python
-	Article.objects.filter(meta__in={"author":"yjmade","date":"2014-12-13"})
-	```
+ ```python
+ Article.objects.filter(meta__in={"author":"yjmade","date":"2014-12-13"})
+ ```
 
 6. `len` : the length of the array, transform to int, and can followed int lookup like gt or lt *`("jsonb_array_length()")`*
 
-	```python
-	Article.objects.filter(meta__authors__len__gte=3)
-	Article.objects.filter(meta__authors__len=10)
-	```
+ ```python
+ Article.objects.filter(meta__authors__len__gte=3)
+ Article.objects.filter(meta__authors__len=10)
+ ```
 7. `as_(text,int,float,bool,date,datetime)` : transform json field into specific data type so that you can follow operation of this type *`("CAST(FIELD as TYPE)")`*
 
-	```python
-	Article.objects.filter(meta__date__as_datetime__year__range=(2012,2015))
-	Article.objects.filter(meta__view_count__as_float__gt=100)
-	Article.objects.filter(meta__title__as_text__iregex=r"^\d{4}")
-	```
+ ```python
+ Article.objects.filter(meta__date__as_datetime__year__range=(2012,2015))
+ Article.objects.filter(meta__view_count__as_float__gt=100)
+ Article.objects.filter(meta__title__as_text__iregex=r"^\d{4}")
+ ```
 8. `path_(PATH)` : get the specific path, path split by '_' *`("#>")`*
 
-	```python
-	Article.objects.filter(meta__path_author_articles__contains="show me the money")
-	```
+ ```python
+ Article.objects.filter(meta__path_author_articles__contains="show me the money")
+ ```
+
 
 Added function to QuerySet
 ========================
@@ -176,6 +181,29 @@ Article.objects.all().select_json(author_name="meta__author__name")\
 ```
 
 
+
+
+support geo search in jsonb
+===========================
+
+**require**: postgresql plugin: 
+
+1. cube
+2. earthdistance
+
+Demo
+
+```python
+Article.objects.filter(data__location__near=[39.9, 116.4,5000]) # longitude，latitude，search range
+```
+
+or 
+
+```
+Article.objects.filter(data__location__near='39.9,116.4,5000') # longitude，latitude，search range
+```
+
+**Alert**: if you don't pass exact number of params, this filter will not be used
 
 
 #####For more information about raw jsonb operation, please see [PostgreSQL Documentation](http://www.postgresql.org/docs/9.4/static/functions-json.html)
