@@ -62,7 +62,15 @@ class JSONField(models.Field):
             # This will cast numbers to strings, but also grab the keys
             # from a dict.
             value = ['%s' % v for v in value]
-
+        if lookup_type == 'near':
+            # geo type must have 3 item, longitude, latitude and search
+            # range, allowed_format 'lat,lng,rang' or [lat, lng, rang]
+            if isinstance(value, six.string_types):
+                value = value.split(',')
+            # if parmas not verify, just don't use this filter, 12756000
+            # is the farest long in earth
+            if len(value) != 3:
+                value = [0, 0, 12756000]
         return value
 
     def get_db_prep_lookup(self, lookup_type, value, connection, prepared=False):
@@ -195,6 +203,40 @@ class PostgresLookup(BuiltinLookup):
 
     def get_rhs_op(self, connection, rhs):
         return '%s %s' % (self.operator, rhs)
+
+
+class EarthNearLookup(BuiltinLookup):
+    '''
+    Eeed plugin: cube and earthdistance, This class help build geo
+    search sql by earthdistance func
+    '''
+
+    def process_lhs(self, qn, connection, lhs=None):
+        lhs = lhs or self.lhs
+        lhs_value, params = qn.compile(lhs)
+        earth_lhs_value = 'll_to_earth((({0})::json->>0)::float,' \
+                          '(({0})::json->>1)::float)'.format(lhs_value)
+        return earth_lhs_value, params
+
+    def get_rhs_op(self, connection, rhs):
+        return '{0} earth_box(ll_to_earth({1},{1}), {1})'.format(
+            self.operator, rhs)
+
+    def as_sql(self, compiler, connection):
+        lhs_sql, params = self.process_lhs(compiler, connection)
+        rhs_sql, rhs_params = self.process_rhs(compiler, connection)
+        rhs_params = [item for sublist in rhs_params
+                      for item in sublist]
+        params.extend(rhs_params)
+        rhs_sql = self.get_rhs_op(connection, rhs_sql)
+        return '%s %s' % (lhs_sql, rhs_sql), params
+
+
+class Near(EarthNearLookup):
+    lookup_name = 'near'
+    operator = '<@'
+
+JSONField.register_lookup(Near)
 
 
 class Has(PostgresLookup):
