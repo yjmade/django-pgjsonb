@@ -6,6 +6,9 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2017-03-14: 0.0.24
+    Add support for __near lookup with postgres earthdistance plugin, Thanks to @steinliber
+    
 2016-06-01: 0.0.23
 	Fix value from select_json not been decode from json introduce by 0.0.18
 
