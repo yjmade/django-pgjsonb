@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
 import json
+import logging
 
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.utils import ProgrammingError
 from django.db import models
 from django.db.models.lookups import BuiltinLookup, Transform
 from django.db.backends.postgresql_psycopg2.schema import DatabaseSchemaEditor
@@ -10,6 +12,7 @@ from django.db.backends.postgresql_psycopg2.introspection import DatabaseIntrosp
 from django.utils import six
 from psycopg2.extras import register_default_jsonb
 # we want to be able to use customize decoder to load json, so get avoid the psycopg2's decode json, just return raw text then we deserilize by the field from_db_value
+logger = logging.getLogger(__name__)
 register_default_jsonb(loads=lambda x: x)
 
 DatabaseIntrospection.data_types_reverse[3802] = "django_pgjsonb.JSONField"
@@ -169,7 +172,11 @@ def patch_index_create():
                         editor.execute(sql)
 
             for index_name in to_delete_indexes:
-                editor.execute(editor._delete_constraint_sql(editor.sql_delete_index, model, index_name))
+                try:
+                    editor.execute(editor._delete_constraint_sql(editor.sql_delete_index, model, index_name))
+                except ProgrammingError as exc:
+                    logger.Warning(exc)
+                    continue
         return res
 
     def add_field(editor, model, field):
