@@ -175,7 +175,7 @@ def patch_index_create():
                 try:
                     editor.execute(editor._delete_constraint_sql(editor.sql_delete_index, model, index_name))
                 except ProgrammingError as exc:
-                    logger.Warning(exc)
+                    logger.info(exc)
                     continue
         return res
 
