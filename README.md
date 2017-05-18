@@ -6,6 +6,9 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2017-05-18：0.0.25
+    Supress exception when drop index and the index already removed.
+
 2017-03-14: 0.0.24
     Add support for __near lookup with postgres earthdistance plugin, Thanks to @steinliber
     
