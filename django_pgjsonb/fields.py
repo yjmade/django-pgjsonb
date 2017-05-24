@@ -4,7 +4,7 @@ import json
 import logging
 
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.utils import ProgrammingError
+from django.db.utils import ProgrammingError, InternalError
 from django.db import models
 from django.db.models.lookups import BuiltinLookup, Transform
 from django.db.backends.postgresql_psycopg2.schema import DatabaseSchemaEditor
@@ -174,8 +174,8 @@ def patch_index_create():
             for index_name in to_delete_indexes:
                 try:
                     editor.execute(editor._delete_constraint_sql(editor.sql_delete_index, model, index_name))
-                except ProgrammingError as exc:
-                    logger.info(exc)
+                except (ProgrammingError, InternalError) as exc:
+                    logger.warning(exc)
                     continue
         return res
 
