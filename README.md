@@ -6,6 +6,8 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2017-08-31: 0.0.26
+    Fix has lookup after Django 1.10
 2017-05-18：0.0.25
     Supress exception when drop index and the index already removed.
 

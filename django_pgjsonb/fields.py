@@ -226,8 +226,7 @@ class EarthNearLookup(BuiltinLookup):
         return earth_lhs_value, params
 
     def get_rhs_op(self, connection, rhs):
-        return '{0} earth_box(ll_to_earth({1},{1}), {1})'.format(
-            self.operator, rhs)
+        return '{0} earth_box(ll_to_earth({1},{1}), {1})'.format(self.operator, rhs)
 
     def as_sql(self, compiler, connection):
         lhs_sql, params = self.process_lhs(compiler, connection)
@@ -243,12 +242,14 @@ class Near(EarthNearLookup):
     lookup_name = 'near'
     operator = '<@'
 
+
 JSONField.register_lookup(Near)
 
 
 class Has(PostgresLookup):
     lookup_name = 'has'
     operator = '?'
+    prepare_rhs = False
 
 JSONField.register_lookup(Has)
 
