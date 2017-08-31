@@ -324,9 +324,7 @@ class TransformMeta(type(Transform)):
             JSONField.register_lookup(cls)
 
 
-class AsTransform(Transform):
-    __metaclass__ = TransformMeta
-
+class AsTransform(six.with_metaclass(TransformMeta, Transform)):
     type = None
     lookup_type = None
     field_type = None
