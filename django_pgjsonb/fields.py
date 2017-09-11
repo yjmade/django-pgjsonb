@@ -278,6 +278,8 @@ JSONField.register_lookup(In)
 class HasAll(PostgresLookup):
     lookup_name = 'has_all'
     operator = '?&'
+    prepare_rhs = False
+
 
 JSONField.register_lookup(HasAll)
 
@@ -285,6 +287,8 @@ JSONField.register_lookup(HasAll)
 class HasAny(PostgresLookup):
     lookup_name = 'has_any'
     operator = '?|'
+    prepare_rhs = False
+
 
 JSONField.register_lookup(HasAny)
 
