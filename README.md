@@ -6,6 +6,11 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2017-09-11: 0.0.28
+    Fix contained_by contains empty {}
+    Fix error of has_any/ has_all
+    Fix lookup ```filter(meta={})```
+
 2017-08-31: 0.0.27
     Fix as_{} lookup for python3
 
@@ -149,7 +154,7 @@ Lookups
  ```
 
 
-Added function to QuerySet
+Extend function to QuerySet
 ========================
 1.`select_json("JSON_PATHS",field_name="JSON_PATHS")`
 
@@ -170,7 +175,7 @@ Article.objects.select_json("meta__author__name",geo="meta__location__geo_info")
 You can also select the length of a json array as a field by use Length object
 
 ```python
-from django.pgjsonb.fields import Length
+from django_pgjsonb.fields import Length
 Article.objects.select_json(authors_len=Length("meta__authors")).values("authors_len")
 ```
 
