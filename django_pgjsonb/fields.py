@@ -10,12 +10,26 @@ from django.db.models.lookups import BuiltinLookup, Transform
 from django.db.backends.postgresql_psycopg2.schema import DatabaseSchemaEditor
 from django.db.backends.postgresql_psycopg2.introspection import DatabaseIntrospection
 from django.utils import six
-from psycopg2.extras import register_default_jsonb
+from psycopg2.extras import register_default_jsonb, Json
 # we want to be able to use customize decoder to load json, so get avoid the psycopg2's decode json, just return raw text then we deserilize by the field from_db_value
 logger = logging.getLogger(__name__)
 register_default_jsonb(loads=lambda x: x)
 
 DatabaseIntrospection.data_types_reverse[3802] = "django_pgjsonb.JSONField"
+
+
+class JsonAdapter(Json):
+    """
+    Customized psycopg2.extras.Json to allow for a custom encoder.
+    """
+
+    def __init__(self, adapted, dumps=None, encode_kwargs=None):
+        self.encode_kwargs = encode_kwargs
+        super().__init__(adapted, dumps=dumps)
+
+    def dumps(self, obj):
+        # options = {'cls': self.encoder} if self.encoder else {}
+        return json.dumps(obj, **self.encode_kwargs)
 
 
 class JSONField(models.Field):
@@ -42,23 +56,18 @@ class JSONField(models.Field):
     def db_type(self, connection):
         return 'jsonb'
 
-    def get_db_prep_value(self, value, connection=None, prepared=None):
-        return self.get_prep_value(value)
-
     def get_prep_value(self, value):
         if value is None:
-            if not self.null and self.blank:
-                return ""
             return None
-        return json.dumps(value, **self.encode_kwargs)
+        return JsonAdapter(value, encode_kwargs=self.encode_kwargs)
 
     def get_prep_lookup(self, lookup_type, value, prepared=False):
-        if lookup_type == 'has_key':
+        if lookup_type == 'has':
             # Need to ensure we have a string, as no other
             # values is appropriate.
             if not isinstance(value, six.string_types):
                 value = '%s' % value
-        if lookup_type in ['all_keys', 'any_keys']:
+        if lookup_type in ['has_all', 'has_any']:
             # This lookup type needs a list of strings.
             if isinstance(value, six.string_types):
                 value = [value]
@@ -265,12 +274,18 @@ class ContainedBy(PostgresLookup):
     lookup_name = 'contained_by'
     operator = '<@'
 
+    def as_sql(self, compiler, connection):
+        lhs_sql, params = self.process_lhs(compiler, connection)
+        rhs_sql, rhs_params = self.process_rhs(compiler, connection)
+        params.extend(rhs_params)
+        rhs_sql = self.get_rhs_op(connection, rhs_sql)
+        return "%s!='{}' and %s %s" % (lhs_sql, lhs_sql, rhs_sql), params
+
 JSONField.register_lookup(ContainedBy)
 
 
-class In(PostgresLookup):
+class In(ContainedBy):
     lookup_name = 'in'
-    operator = '<@'
 
 JSONField.register_lookup(In)
 
