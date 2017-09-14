@@ -25,7 +25,7 @@ class JsonAdapter(Json):
 
     def __init__(self, adapted, dumps=None, encode_kwargs=None):
         self.encode_kwargs = encode_kwargs
-        super().__init__(adapted, dumps=dumps)
+        super(JsonAdapter, self).__init__(adapted, dumps=dumps)
 
     def dumps(self, obj):
         # options = {'cls': self.encoder} if self.encoder else {}

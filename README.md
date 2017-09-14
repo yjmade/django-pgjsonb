@@ -6,6 +6,9 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2017-09-13: 0.0.29
+    Fix JsonAdapter Python2 incompatible
+    
 2017-09-11: 0.0.28
     Fix contained_by contains empty {}
     Fix error of has_any/ has_all
