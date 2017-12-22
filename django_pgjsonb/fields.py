@@ -221,8 +221,8 @@ class EarthNearLookup(BuiltinLookup):
     def process_lhs(self, qn, connection, lhs=None):
         lhs = lhs or self.lhs
         lhs_value, params = qn.compile(lhs)
-        earth_lhs_value = "ll_to_earth((({0})::json->>'lat')::float," \
-                          "(({0})::json->>'lng')::float)".format(lhs_value)
+        earth_lhs_value = 'll_to_earth((({0})::json->>0)::float,' \
+                          '(({0})::json->>1)::float)'.format(lhs_value)
         return earth_lhs_value, params
 
     def get_rhs_op(self, connection, rhs):
