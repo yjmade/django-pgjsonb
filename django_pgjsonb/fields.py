@@ -208,6 +208,7 @@ def patch_index_create():
     DatabaseSchemaEditor._alter_field = _alter_field
     DatabaseSchemaEditor.add_field = add_field
 
+
 patch_index_create()
 
 
@@ -260,12 +261,14 @@ class Has(PostgresLookup):
     operator = '?'
     prepare_rhs = False
 
+
 JSONField.register_lookup(Has)
 
 
 class Contains(PostgresLookup):
     lookup_name = 'contains'
     operator = '@>'
+
 
 JSONField.register_lookup(Contains)
 
@@ -281,11 +284,13 @@ class ContainedBy(PostgresLookup):
         rhs_sql = self.get_rhs_op(connection, rhs_sql)
         return "%s!='{}' and %s %s" % (lhs_sql, lhs_sql, rhs_sql), params
 
+
 JSONField.register_lookup(ContainedBy)
 
 
 class In(ContainedBy):
     lookup_name = 'in'
+
 
 JSONField.register_lookup(In)
 
@@ -329,6 +334,7 @@ class ArrayLenTransform(Transform):
     def as_sql(self, qn, connection):
         lhs, params = qn.compile(self.lhs)
         return 'jsonb_array_length(%s)' % lhs, params
+
 
 JSONField.register_lookup(ArrayLenTransform)
 
@@ -467,7 +473,7 @@ def patch_select_json():
             if isinstance(opr, six.string_types):
                 opr_elements = opr.split("__")
                 field = opr_elements.pop(0)
-                select_elements = ['"%s"."%s"' % (model._meta.db_table, field)] + ["'%s'" % name for name in opr_elements]
+                select_elements = ['"%s"."%s"' % (model._meta.db_table, field)] + [("%s" if name.isnumeric() else "'%s'") % name for name in opr_elements]
                 return "_".join(opr_elements), SQLStr(" -> ".join(select_elements))
             elif isinstance(opr, Length):
                 annotate_name, sql = get_sql_str(model, opr.field_select)
@@ -502,6 +508,7 @@ class Length(object):
 def manager_select_json(manager, *args, **kwargs):
     return manager.all().select_json(*args, **kwargs)
 
+
 models.manager.BaseManager.select_json = manager_select_json
 
 
@@ -517,5 +524,6 @@ def patch_serializer():
             return old_handle_field(serializer, obj, field)
 
     Serializer.handle_field = handle_field
+
 
 patch_serializer()
