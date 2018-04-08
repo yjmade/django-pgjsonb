@@ -475,7 +475,7 @@ def patch_select_json():
 
         return query.extra(select=dict(
             [get_sql_str(query.model, opr) for opr in args],
-            **{k: get_sql_str(query.model, v)[1] for k, v in kwargs.iteritems()}
+            **{k: get_sql_str(query.model, v)[1] for k, v in six.iteritems(kwargs)}
         ))
 
     models.QuerySet.select_json = select_json
