@@ -427,6 +427,8 @@ class Get(Transform):
         # elif isinstance(self.name, int):
         # Also filter on arrays.
         #     filter_to = "%s @> '[]' AND" % lhs
+        if isinstance(self.name, int):
+            return '%s -> %s' % (lhs, self.name), params
         return '%s -> \'%s\'' % (lhs, self.name), params
 
 
