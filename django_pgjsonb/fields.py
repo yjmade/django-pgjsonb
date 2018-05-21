@@ -86,7 +86,7 @@ class JSONField(models.Field):
         return value
 
     def get_db_prep_lookup(self, lookup_type, value, connection, prepared=False):
-        if lookup_type in ['contains', 'in']:
+        if lookup_type in ['contains', 'in', 'icontains']:
             value = self.get_prep_value(value)
             return [value]
 
@@ -248,6 +248,17 @@ class EarthNearLookup(BuiltinLookup):
         return '%s %s' % (lhs_sql, rhs_sql), params
 
 
+class CasePostgresLookup(BuiltinLookup):
+    def process_lhs(self, qn, connection, lhs=None):
+        lhs = lhs or self.lhs
+        lhs_value, params = qn.compile(lhs)
+        case_lhs_value = "lower({0})".format(lhs_value)
+        return case_lhs_value, params
+
+    def get_rhs_op(self, connection, rhs):
+        return "{0} lower({1})".format(self.operator, rhs)
+
+
 class Near(EarthNearLookup):
     lookup_name = 'near'
     operator = '<@'
@@ -271,6 +282,13 @@ class Contains(PostgresLookup):
 
 
 JSONField.register_lookup(Contains)
+
+
+class Icontains(CasePostgresLookup):
+    lookup_name = 'icontains'
+    operator = '@>'
+
+JSONField.register_lookup(Icontains)
 
 
 class ContainedBy(PostgresLookup):
