@@ -6,6 +6,9 @@ Originaly inspired by [django-postgres](https://bitbucket.org/schinckel/django-p
 
 Change Logs
 ===========
+2020-02-21: 0.0.30
+    Made Django3 compatible
+
 2017-09-13: 0.0.29
     Fix JsonAdapter Python2 incompatible
     
