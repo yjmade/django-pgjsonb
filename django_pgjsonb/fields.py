@@ -7,9 +7,8 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db.utils import ProgrammingError, InternalError
 from django.db import models
 from django.db.models.lookups import BuiltinLookup, Transform
-from django.db.backends.postgresql_psycopg2.schema import DatabaseSchemaEditor
-from django.db.backends.postgresql_psycopg2.introspection import DatabaseIntrospection
-from django.utils import six
+from django.db.backends.postgresql.schema import DatabaseSchemaEditor
+from django.db.backends.postgresql.introspection import DatabaseIntrospection
 from psycopg2.extras import register_default_jsonb, Json
 # we want to be able to use customize decoder to load json, so get avoid the psycopg2's decode json, just return raw text then we deserilize by the field from_db_value
 logger = logging.getLogger(__name__)
@@ -65,11 +64,11 @@ class JSONField(models.Field):
         if lookup_type == 'has':
             # Need to ensure we have a string, as no other
             # values is appropriate.
-            if not isinstance(value, six.string_types):
+            if not isinstance(value, str):
                 value = '%s' % value
         if lookup_type in ['has_all', 'has_any']:
             # This lookup type needs a list of strings.
-            if isinstance(value, six.string_types):
+            if isinstance(value, str):
                 value = [value]
             # This will cast numbers to strings, but also grab the keys
             # from a dict.
@@ -77,7 +76,7 @@ class JSONField(models.Field):
         if lookup_type == 'near':
             # geo type must have 3 item, longitude, latitude and search
             # range, allowed_format 'lat,lng,rang' or [lat, lng, rang]
-            if isinstance(value, six.string_types):
+            if isinstance(value, str):
                 value = value.split(',')
             # if parmas not verify, just don't use this filter, 12756000
             # is the farest long in earth
@@ -184,7 +183,7 @@ def patch_index_create():
 
             to_create_indexs, to_delete_indexes = (all_new_indexe_names - all_old_index_names), (all_old_index_names - all_new_indexe_names)
             if to_create_indexs:
-                for index_name, sql in six.iteritems(editor._create_jsonb_index_sql(model, new_field)):
+                for index_name, sql in editor._create_jsonb_index_sql(model, new_field).items():
                     if index_name in to_create_indexs:
                         editor.execute(sql)
 
@@ -349,7 +348,7 @@ class TransformMeta(type(Transform)):
             JSONField.register_lookup(cls)
 
 
-class AsTransform(six.with_metaclass(TransformMeta, Transform)):
+class AsTransform(Transform, metaclass=TransformMeta):
     type = None
     lookup_type = None
     field_type = None
@@ -464,7 +463,7 @@ class PathTransformFactory(object):
 
 
 def patch_select_json():
-    class SQLStr(six.text_type):
+    class SQLStr(str):
         output_field = JSONField()
 
     def select_json(query, *args, **kwargs):
@@ -472,7 +471,7 @@ def patch_select_json():
             return query
 
         def get_sql_str(model, opr):
-            if isinstance(opr, six.string_types):
+            if isinstance(opr, str):
                 opr_elements = opr.split("__")
                 field = opr_elements.pop(0)
                 select_elements = ['"%s"."%s"' % (model._meta.db_table, field)] + [("%s" if name.isnumeric() else "'%s'") % name for name in opr_elements]
@@ -483,7 +482,7 @@ def patch_select_json():
 
         return query.extra(select=dict(
             [get_sql_str(query.model, opr) for opr in args],
-            **{k: get_sql_str(query.model, v)[1] for k, v in six.iteritems(kwargs)}
+            **{k: get_sql_str(query.model, v)[1] for k, v in kwargs.items()}
         ))
 
     models.QuerySet.select_json = select_json
