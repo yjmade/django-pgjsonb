@@ -356,9 +356,23 @@ class AsTransform(six.with_metaclass(TransformMeta, Transform)):
 
     def as_sql(self, qn, connection):
         lhs, params = qn.compile(self.lhs)
-        splited = lhs.split("->")
+        if "->" in lhs:
+            last = params
+        elif "#>" in lhs:
+            lhs = lhs.replace('#> %s)', '')
+            attrs = params[0]
+            i = 0
+            while i < len(attrs) - 1:
+                attr = "-> '" + attrs[i] + "'"
+                lhs += attr
+                i += 1
+            lhs += ' -> %s)'
+
+            last = [attrs[-1]]
+
+        splited = lhs.rsplit("->", 1)
         lhs = "->>".join(["->".join(splited[:-1]), splited[-1]])
-        return "CAST(%s as %s)" % (lhs, self.type), params
+        return "CAST(%s as %s)" % (lhs, self.type), last
 
     @property
     def output_field(self):
