@@ -7,7 +7,7 @@ try:
 except UnicodeDecodeError:
     README = ""
 
-VERSION = "0.0.31"
+VERSION = "0.0.34"
 
 setup(
     name='django-pgjsonb',
@@ -18,5 +18,5 @@ setup(
     author='Jay Young(yjmade)',
     author_email='dev@yjmade.net',
     packages=find_packages(),
-    install_requires=['Django>=1.7'],
+    install_requires=['Django>=1.7', 'six'],
 )

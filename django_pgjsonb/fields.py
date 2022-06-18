@@ -3,13 +3,14 @@ from __future__ import unicode_literals
 import json
 import logging
 
+import six
+
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.utils import ProgrammingError, InternalError
 from django.db import models
 from django.db.models.lookups import BuiltinLookup, Transform
 from django.db.backends.postgresql.schema import DatabaseSchemaEditor
 from django.db.backends.postgresql.introspection import DatabaseIntrospection
-from django.utils import six
 from psycopg2.extras import register_default_jsonb, Json
 # we want to be able to use customize decoder to load json, so get avoid the psycopg2's decode json, just return raw text then we deserilize by the field from_db_value
 logger = logging.getLogger(__name__)
