@@ -7,8 +7,8 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db.utils import ProgrammingError, InternalError
 from django.db import models
 from django.db.models.lookups import BuiltinLookup, Transform
-from django.db.backends.postgresql_psycopg2.schema import DatabaseSchemaEditor
-from django.db.backends.postgresql_psycopg2.introspection import DatabaseIntrospection
+from django.db.backends.postgresql.schema import DatabaseSchemaEditor
+from django.db.backends.postgresql.introspection import DatabaseIntrospection
 from django.utils import six
 from psycopg2.extras import register_default_jsonb, Json
 # we want to be able to use customize decoder to load json, so get avoid the psycopg2's decode json, just return raw text then we deserilize by the field from_db_value
@@ -111,7 +111,7 @@ class JSONField(models.Field):
         # Rely on psycopg2 to give us the value already converted.
         return value
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         if value is not None:
             value = json.loads(value, **self.decode_kwargs)
         return value
